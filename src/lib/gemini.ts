@@ -19,6 +19,16 @@ export function getGemini() {
   return genai;
 }
 
+// Hàm dọn dẹp kết quả từ Gemini, xóa mọi backtick code block và khoảng trắng đầu dòng
+function cleanGeminiResponse(text: string): string {
+  if (!text) return '';
+  // Xóa các thẻ markdown code block (ví dụ: ```html, ```markdown, ```)
+  let cleaned = text.replace(/```[a-z]*\n/gi, '').replace(/```/g, '');
+  // Cắt bỏ khoảng trắng thụt lề (từ 4 dấu cách trở lên) ở đầu mỗi dòng để tránh bị hiểu là Indented Code Block
+  cleaned = cleaned.replace(/^ {4,}/gm, '');
+  return cleaned.trim();
+}
+
 export async function analyzeClassHealth(students: Student[], records: MealRecord[], className: string): Promise<string> {
   const ai = getGemini();
   const n = students.length;
@@ -50,7 +60,7 @@ QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc tron
       model: 'gemini-2.0-flash',
       contents: prompt,
     });
-    return (response.text || '').replace(/```(?:html|markdown)?\n/gi, '').replace(/```/g, '').trim();
+    return cleanGeminiResponse(response.text || '');
   } catch (err) {
     console.error("Gemini Error: ", err);
     return "Lỗi phân tích AI. Vui lòng kiểm tra API Key và kết nối.";
@@ -73,7 +83,7 @@ QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc tron
       model: 'gemini-2.0-flash',
       contents: prompt,
     });
-    return (response.text || '').replace(/```(?:html|markdown)?\n/gi, '').replace(/```/g, '').trim();
+    return cleanGeminiResponse(response.text || '');
   } catch (err) {
     console.error("Gemini Error: ", err);
     return "Lỗi gọi AI.";
@@ -95,7 +105,7 @@ QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc tron
       model: 'gemini-2.0-flash',
       contents: prompt,
     });
-    return (response.text || '').replace(/```(?:html|markdown)?\n/gi, '').replace(/```/g, '').trim();
+    return cleanGeminiResponse(response.text || '');
   } catch (err) {
     console.error("Gemini Error: ", err);
     return "Lỗi gọi AI.";
