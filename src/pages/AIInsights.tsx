@@ -3,6 +3,7 @@ import { Card, Button } from '../components/ui';
 import { Sparkles, FileText, CalendarCheck, ClipboardType, Activity } from 'lucide-react';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 import { useStudents } from '../hooks/useStudents';
 import { useMealRecords } from '../hooks/useMealRecords';
 import { useAuth } from '../hooks/useAuth';
@@ -136,7 +137,7 @@ export default function AIInsights() {
               <div className="flex-1 bg-slate-50 rounded-xl p-4 border border-slate-200">
                   {loading ? <Skeleton /> : healthResult ? (
                      <div className="markdown-body prose prose-sm prose-green max-w-none text-slate-700">
-                        <Markdown rehypePlugins={[rehypeRaw]}>{healthResult}</Markdown>
+                        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{healthResult}</Markdown>
                      </div>
                   ) : <div className="h-full flex items-center justify-center text-slate-400 text-sm">Nhấn nút để bắt đầu phân tích AI</div>}
               </div>
@@ -152,7 +153,7 @@ export default function AIInsights() {
               <div className="flex-1 bg-slate-50 rounded-xl p-4 border border-slate-200">
                   {loading ? <Skeleton /> : menuResult ? (
                      <div className="markdown-body prose prose-sm prose-green max-w-none text-slate-700">
-                       <Markdown rehypePlugins={[rehypeRaw]}>{menuResult}</Markdown>
+                       <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{menuResult}</Markdown>
                      </div>
                   ) : <div className="h-full flex items-center justify-center text-slate-400 text-sm">Nhấn nút để tạo thực đơn</div>}
               </div>
@@ -169,7 +170,7 @@ export default function AIInsights() {
                   {loading ? <Skeleton /> : reportResult ? (
                      <>
                         <div className="markdown-body prose prose-sm prose-green max-w-none text-slate-700 mb-10">
-                           <Markdown rehypePlugins={[rehypeRaw]}>{reportResult}</Markdown>
+                           <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{reportResult}</Markdown>
                         </div>
                         <Button variant="outline" size="sm" className="absolute bottom-4 right-4 bg-white" onClick={() => navigator.clipboard.writeText(reportResult)}>Copy</Button>
                      </>

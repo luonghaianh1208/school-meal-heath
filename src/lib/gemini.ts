@@ -75,8 +75,15 @@ export async function suggestWeeklyMenu(targetCalories: number, allergies: strin
 - Dị ứng cần tránh: ${allergies.join(", ") || "Không có"}
 - Ưu tiên: nguyên liệu phổ biến, dễ nấu, giá hợp lý (<25.000đ/suất)
 
-Format: Sử dụng Markdown (ví dụ: bảng).
-QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). KHÔNG thụt lề (indent) các dòng. Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điểm tốt/ưu điểm dinh dưỡng, in đậm và đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo dị ứng hoặc lưu ý quan trọng.`;
+Format BẮT BUỘC: Sử dụng Markdown Bảng chuẩn GFM (Standard Markdown Table). Ví dụ:
+| Ngày | Món ăn | Lượng Calo | Lưu ý |
+|---|---|---|---|
+| Thứ 2 | Cơm trắng, Thịt kho, Canh bí | 550 | ... |
+
+QUAN TRỌNG: 
+- Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). 
+- KHÔNG thụt lề (indent) bất kỳ dòng nào, đặc biệt là bảng biểu. Ký tự | của bảng phải nằm ở sát lề trái.
+- Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điểm tốt/ưu điểm dinh dưỡng, in đậm và đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo dị ứng hoặc lưu ý quan trọng.`;
 
   try {
     const response = await ai.models.generateContent({
