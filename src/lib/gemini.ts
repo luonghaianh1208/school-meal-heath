@@ -42,14 +42,14 @@ export async function analyzeClassHealth(students: Student[], records: MealRecor
   - Mức độ ăn trung bình: ${avgEatLevel.toFixed(0)}%
   - Học sinh cần chú ý: ${monitoredList || "Không có"}
   Hãy đưa ra nhận xét ngắn gọn (3-4 câu) và 3 khuyến nghị cụ thể cho giáo viên. Bám sát vào dinh dưỡng tiểu học ở Việt Nam.
-  QUAN TRỌNG: Trả về dưới dạng Markdown. Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điều tích cực/đạt chuẩn, in đậm và màu đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo/vấn đề cần chú ý.`;
+  QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điều tích cực/đạt chuẩn, in đậm và màu đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo/vấn đề cần chú ý.`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: prompt,
     });
-    return response.text || '';
+    return (response.text || '').replace(/```(?:html|markdown)?\n/gi, '').replace(/```/g, '').trim();
   } catch (err) {
     console.error("Gemini Error: ", err);
     return "Lỗi phân tích AI. Vui lòng kiểm tra API Key và kết nối.";
@@ -65,14 +65,14 @@ export async function suggestWeeklyMenu(targetCalories: number, allergies: strin
   - Ưu tiên: nguyên liệu phổ biến, dễ nấu, giá hợp lý (<25.000đ/suất)
   
   Format: Sử dụng Markdown (ví dụ: bảng).
-  QUAN TRỌNG: Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điểm tốt/ưu điểm dinh dưỡng, in đậm và đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo dị ứng hoặc lưu ý quan trọng.`;
+  QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điểm tốt/ưu điểm dinh dưỡng, in đậm và đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo dị ứng hoặc lưu ý quan trọng.`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: prompt,
     });
-    return response.text || '';
+    return (response.text || '').replace(/```(?:html|markdown)?\n/gi, '').replace(/```/g, '').trim();
   } catch (err) {
     console.error("Gemini Error: ", err);
     return "Lỗi gọi AI.";
@@ -86,14 +86,14 @@ export async function generateClassReport(className: string, weekData: any): Pro
   ${JSON.stringify(weekData)}
   Viết báo cáo ngắn gọn dạng văn xuôi, phù hợp gửi cho ban giám hiệu.
   Gồm: tình hình ăn uống chung, học sinh nổi bật (tốt/cần theo dõi), đề xuất.
-  QUAN TRỌNG: Trả về bằng thẻ Markdown. BẮT BUỘC sử dụng thẻ HTML để nhấn mạnh: in đậm màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những tiến bộ, tích cực; in đậm màu đỏ (<strong class="text-rose-600">...</strong>) cho cảnh báo hoặc chỉ số kém.`;
+  QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). BẮT BUỘC sử dụng thẻ HTML để nhấn mạnh: in đậm màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những tiến bộ, tích cực; in đậm màu đỏ (<strong class="text-rose-600">...</strong>) cho cảnh báo hoặc chỉ số kém.`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: prompt,
     });
-    return response.text || '';
+    return (response.text || '').replace(/```(?:html|markdown)?\n/gi, '').replace(/```/g, '').trim();
   } catch (err) {
     console.error("Gemini Error: ", err);
     return "Lỗi gọi AI.";
