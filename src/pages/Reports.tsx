@@ -105,6 +105,13 @@ export default function Reports() {
       'Số bữa ghi nhận': s.total,
       'Tỷ lệ ăn đủ (%)': s.percentage
     })));
+    // Define column widths for better formatting
+    wsAttention['!cols'] = [
+      { wch: 25 }, // Học sinh
+      { wch: 15 }, // Lớp
+      { wch: 15 }, // Số bữa
+      { wch: 15 }  // Tỷ lệ
+    ];
     XLSX.utils.book_append_sheet(wb, wsAttention, 'Top_Can_Theo_Doi');
 
     // Sheet 2: Xu hướng
@@ -112,6 +119,10 @@ export default function Reports() {
       'Ngày': d.name,
       'Tỷ lệ ăn đủ (%)': d['Ăn đủ (%)']
     })));
+    wsTrend['!cols'] = [
+      { wch: 15 }, // Ngày
+      { wch: 15 }  // Tỷ lệ
+    ];
     XLSX.utils.book_append_sheet(wb, wsTrend, 'Xu_Huong');
 
     XLSX.writeFile(wb, `Bao_Cao_Dinh_Duong_${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -119,14 +130,29 @@ export default function Reports() {
   }
 
   const handlePrint = () => {
-    window.print();
+    const element = document.getElementById('report-content');
+    if (!element) return;
+    
+    // Use dynamic import to avoid SSR issues if this was SSR, though Vite is SPA.
+    import('html2pdf.js').then((html2pdf) => {
+      const opt = {
+        margin:       10,
+        filename:     `Bao_Cao_Dinh_Duong_${new Date().toISOString().split('T')[0]}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf.default().set(opt).from(element).save().then(() => {
+         toast('Đã tải xuống file PDF!', 'success');
+      });
+    });
   }
 
   if (loadingStudents || loadingRecords) return <div className="p-8">Đang tải báo cáo...</div>;
 
 
   return (
-    <div className="flex flex-col h-full space-y-6 print:space-y-4">
+    <div id="report-content" className="flex flex-col h-full space-y-6 print:space-y-4 bg-white p-2">
       <header className="flex justify-between items-end shrink-0 mb-2 border-b border-slate-100 pb-4 print:pb-2">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Báo cáo Tổng hợp</h2>
