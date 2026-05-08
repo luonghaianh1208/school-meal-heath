@@ -37,12 +37,13 @@ export async function analyzeClassHealth(students: Student[], records: MealRecor
   const monitoredList = monitoredStudents.map(s => `${s.name} (${s.healthStatus})`).join(", ");
 
   const prompt = `Bạn là chuyên gia dinh dưỡng học đường. Dựa trên dữ liệu sau của lớp ${className}:
-  - Số học sinh: ${n}
-  - Trung bình BMI: ${avgBmi}
-  - Mức độ ăn trung bình: ${avgEatLevel.toFixed(0)}%
-  - Học sinh cần chú ý: ${monitoredList || "Không có"}
-  Hãy đưa ra nhận xét ngắn gọn (3-4 câu) và 3 khuyến nghị cụ thể cho giáo viên. Bám sát vào dinh dưỡng tiểu học ở Việt Nam.
-  QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điều tích cực/đạt chuẩn, in đậm và màu đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo/vấn đề cần chú ý.`;
+- Số học sinh: ${n}
+- Trung bình BMI: ${avgBmi}
+- Mức độ ăn trung bình: ${avgEatLevel.toFixed(0)}%
+- Học sinh cần chú ý: ${monitoredList || "Không có"}
+
+Hãy đưa ra nhận xét ngắn gọn (3-4 câu) và 3 khuyến nghị cụ thể cho giáo viên. Bám sát vào dinh dưỡng tiểu học ở Việt Nam.
+QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). KHÔNG thụt lề (indent) các dòng. Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điều tích cực/đạt chuẩn, in đậm và màu đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo/vấn đề cần chú ý.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -60,12 +61,12 @@ export async function suggestWeeklyMenu(targetCalories: number, allergies: strin
   const ai = getGemini();
   
   const prompt = `Gợi ý thực đơn 5 ngày cho học sinh tiểu học/THCS tại Việt Nam với:
-  - Mục tiêu calo mỗi bữa trưa: ${Math.round(targetCalories)} kcal
-  - Dị ứng cần tránh: ${allergies.join(", ") || "Không có"}
-  - Ưu tiên: nguyên liệu phổ biến, dễ nấu, giá hợp lý (<25.000đ/suất)
-  
-  Format: Sử dụng Markdown (ví dụ: bảng).
-  QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điểm tốt/ưu điểm dinh dưỡng, in đậm và đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo dị ứng hoặc lưu ý quan trọng.`;
+- Mục tiêu calo mỗi bữa trưa: ${Math.round(targetCalories)} kcal
+- Dị ứng cần tránh: ${allergies.join(", ") || "Không có"}
+- Ưu tiên: nguyên liệu phổ biến, dễ nấu, giá hợp lý (<25.000đ/suất)
+
+Format: Sử dụng Markdown (ví dụ: bảng).
+QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). KHÔNG thụt lề (indent) các dòng. Sử dụng thẻ HTML để tô màu: in đậm và màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những điểm tốt/ưu điểm dinh dưỡng, in đậm và đỏ (<strong class="text-rose-600">...</strong>) cho các cảnh báo dị ứng hoặc lưu ý quan trọng.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -83,10 +84,11 @@ export async function generateClassReport(className: string, weekData: any): Pro
   const ai = getGemini();
   
   const prompt = `Tạo báo cáo tóm tắt tuần cho lớp ${className}:
-  ${JSON.stringify(weekData)}
-  Viết báo cáo ngắn gọn dạng văn xuôi, phù hợp gửi cho ban giám hiệu.
-  Gồm: tình hình ăn uống chung, học sinh nổi bật (tốt/cần theo dõi), đề xuất.
-  QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). BẮT BUỘC sử dụng thẻ HTML để nhấn mạnh: in đậm màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những tiến bộ, tích cực; in đậm màu đỏ (<strong class="text-rose-600">...</strong>) cho cảnh báo hoặc chỉ số kém.`;
+${JSON.stringify(weekData)}
+
+Viết báo cáo ngắn gọn dạng văn xuôi, phù hợp gửi cho ban giám hiệu.
+Gồm: tình hình ăn uống chung, học sinh nổi bật (tốt/cần theo dõi), đề xuất.
+QUAN TRỌNG: Trả về dưới dạng Markdown thuần túy (KHÔNG bọc trong \`\`\`html hay \`\`\`markdown). KHÔNG thụt lề (indent) các dòng. BẮT BUỘC sử dụng thẻ HTML để nhấn mạnh: in đậm màu xanh lá (<strong class="text-emerald-600">...</strong>) cho những tiến bộ, tích cực; in đậm màu đỏ (<strong class="text-rose-600">...</strong>) cho cảnh báo hoặc chỉ số kém.`;
 
   try {
     const response = await ai.models.generateContent({
