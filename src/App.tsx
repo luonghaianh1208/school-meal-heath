@@ -18,6 +18,7 @@ import NutritionCalc from './pages/NutritionCalc';
 import AIInsights from './pages/AIInsights';
 import Reports from './pages/Reports';
 import Admin from './pages/Admin';
+import Profile from './pages/Profile';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="nutrition" element={<NutritionCalc />} />
             <Route path="ai-insights" element={<AIInsights />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile />} />
             <Route 
               path="admin" 
               element={

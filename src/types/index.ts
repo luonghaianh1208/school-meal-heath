@@ -9,6 +9,7 @@ export interface AppUser {
   uid: string
   email: string
   displayName: string
+  phone?: string                 // 10 số, dùng để liên lạc
   role: 'admin' | 'teacher'
   assignedClasses: string[]      // ["6A", "7B"] — lớp được giao (teacher)
   createdAt: Timestamp | Date
