@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import { Card, Badge, Button } from '../components/ui';
 import { useUsers } from '../hooks/useUsers';
+import { useStudents } from '../hooks/useStudents';
 import { AppUser } from '../types';
-import { Settings, Shield, User, Save, Edit3 } from 'lucide-react';
+import { Settings, Shield, User, Save, Edit3, Trash2, Plus, Upload, AlertTriangle } from 'lucide-react';
+import { CreateTeacherModal } from '../components/admin/CreateTeacherModal';
+import { ImportTeachersModal } from '../components/admin/ImportTeachersModal';
 
 export default function Admin() {
-  const { users, loading, updateAssignedClasses, updateUserRole } = useUsers();
+  const { users, loading, updateAssignedClasses, updateUserRole, deleteUser, deleteUsersBulk } = useUsers();
+  const { students, deleteStudentsBulk } = useStudents('all');
   const [editingClassesFor, setEditingClassesFor] = useState<string | null>(null);
   const [tempClasses, setTempClasses] = useState<string>('');
+  
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   if (loading) return <div className="p-8">Đang tải dữ liệu...</div>;
 
@@ -28,14 +35,45 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteUser = async (user: AppUser) => {
+    if (confirm(`CHÚ Ý: Bạn có chắc chắn muốn XÓA người dùng ${user.displayName || user.email}?`)) {
+      await deleteUser(user.uid);
+    }
+  };
+
+  const handleResetStudents = async () => {
+    if (students.length === 0) return alert('Hệ thống hiện không có dữ liệu học sinh.');
+    if (confirm(`CẢNH BÁO NGUY HIỂM: Bạn đang chuẩn bị xóa TOÀN BỘ ${students.length} học sinh trên hệ thống. Hành động này không thể hoàn tác! Bạn có chắc chắn không?`)) {
+      await deleteStudentsBulk(students.map(s => s.id));
+    }
+  };
+
+  const handleResetTeachers = async () => {
+    const teachers = users.filter(u => u.role === 'teacher');
+    if (teachers.length === 0) return alert('Hệ thống hiện không có giáo viên.');
+    if (confirm(`CẢNH BÁO NGUY HIỂM: Bạn đang chuẩn bị xóa TOÀN BỘ ${teachers.length} giáo viên trên hệ thống. Hành động này không thể hoàn tác! Bạn có chắc chắn không?`)) {
+      await deleteUsersBulk(teachers.map(t => t.uid));
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-          <Settings className="w-6 h-6 text-green-600" />
-          Quản trị Hệ thống
-        </h2>
-        <p className="text-slate-500 mt-1">Quản lý người dùng, phân quyền và phân công lớp học</p>
+    <div className="space-y-8 max-w-6xl mx-auto">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Settings className="w-6 h-6 text-green-600" />
+            Quản trị Hệ thống
+          </h2>
+          <p className="text-slate-500 mt-1">Quản lý người dùng, phân quyền và phân công lớp học</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsImportModalOpen(true)} variant="outline" className="gap-2">
+            <Upload className="w-4 h-4" /> Nhập Excel
+          </Button>
+          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> Thêm Giáo viên
+          </Button>
+        </div>
       </header>
 
       <Card className="overflow-hidden p-0">
@@ -101,9 +139,14 @@ export default function Admin() {
                         <Button size="sm" variant="outline" onClick={() => setEditingClassesFor(null)} className="px-2 text-slate-500">Hủy</Button>
                       </div>
                     ) : (
-                      <Button size="sm" variant="outline" onClick={() => handleEditClasses(user)} className="gap-1 px-2 text-slate-600">
-                        <Edit3 className="w-4 h-4" /> Sửa lớp
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEditClasses(user)} className="gap-1 px-2 text-slate-600">
+                          <Edit3 className="w-4 h-4" /> Sửa
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user)} className="gap-1 px-2 text-red-600 border-red-200 hover:bg-red-50">
+                          <Trash2 className="w-4 h-4" /> Xóa
+                        </Button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -119,6 +162,26 @@ export default function Admin() {
           </table>
         </div>
       </Card>
+
+      <Card className="border-red-100 bg-red-50/30">
+        <h3 className="text-lg font-bold text-red-700 flex items-center gap-2 mb-4">
+          <AlertTriangle className="w-5 h-5" />
+          Khu vực Nguy hiểm (Reset Data)
+        </h3>
+        <p className="text-sm text-slate-600 mb-6">Thao tác tại đây sẽ xóa vĩnh viễn dữ liệu trên hệ thống. Vui lòng cẩn trọng.</p>
+        
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={handleResetStudents} className="border-red-200 text-red-600 hover:bg-red-50">
+            Xóa TOÀN BỘ Học sinh
+          </Button>
+          <Button variant="outline" onClick={handleResetTeachers} className="border-red-200 text-red-600 hover:bg-red-50">
+            Xóa TOÀN BỘ Giáo viên
+          </Button>
+        </div>
+      </Card>
+
+      <CreateTeacherModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      <ImportTeachersModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
     </div>
   );
 }

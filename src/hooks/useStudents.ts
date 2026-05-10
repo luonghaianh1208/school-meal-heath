@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Student } from '../types';
 
@@ -61,5 +61,26 @@ export function useStudents(className?: string) {
     await deleteDoc(doc(db, 'students', id));
   };
 
-  return { students, loading, error, addStudent, updateStudent, deleteStudent };
+  const deleteStudentsBulk = async (ids: string[]) => {
+    const batch = writeBatch(db);
+    ids.forEach(id => {
+      batch.delete(doc(db, 'students', id));
+    });
+    await batch.commit();
+  };
+
+  const addStudentsBulk = async (studentsList: Omit<Student, 'id'>[]) => {
+    const batch = writeBatch(db);
+    studentsList.forEach(student => {
+      const docRef = doc(collection(db, 'students'));
+      batch.set(docRef, {
+        ...student,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    });
+    await batch.commit();
+  };
+
+  return { students, loading, error, addStudent, updateStudent, deleteStudent, deleteStudentsBulk, addStudentsBulk };
 }

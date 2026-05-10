@@ -35,7 +35,7 @@ export default function NutritionCalc() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Tuổi</label>
-              <input type="number" min="6" max="15" value={age} onChange={(e) => setAge(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500" />
+              <input type="number" min="6" max="18" value={age} onChange={(e) => setAge(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Giới tính</label>
@@ -50,14 +50,14 @@ export default function NutritionCalc() {
              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5"><Scale className="w-4 h-4 text-slate-400"/> Cân nặng (kg)</label>
                 <div className="flex items-center gap-3">
-                  <input type="range" min="20" max="80" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="flex-1 accent-green-600" />
+                  <input type="range" min="20" max="150" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="flex-1 accent-green-600" />
                   <span className="w-10 text-right font-medium text-slate-900">{weight}</span>
                 </div>
              </div>
              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5"><Ruler className="w-4 h-4 text-slate-400"/> Chiều cao (cm)</label>
                 <div className="flex items-center gap-3">
-                  <input type="range" min="110" max="180" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="flex-1 accent-green-600" />
+                  <input type="range" min="110" max="220" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="flex-1 accent-green-600" />
                   <span className="w-10 text-right font-medium text-slate-900">{height}</span>
                 </div>
              </div>

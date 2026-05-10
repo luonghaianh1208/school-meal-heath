@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { AppUser } from '../types';
 import { useToast } from '../components/ui/Toast';
@@ -49,5 +49,30 @@ export function useUsers() {
     }
   };
 
-  return { users, loading, updateAssignedClasses, updateUserRole };
+  const deleteUser = async (uid: string) => {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await deleteDoc(userRef);
+      toast('Đã xóa người dùng thành công!', 'success');
+    } catch (error) {
+      console.error("Lỗi khi xóa người dùng:", error);
+      toast('Lỗi khi xóa người dùng', 'error');
+    }
+  };
+
+  const deleteUsersBulk = async (uids: string[]) => {
+    try {
+      const batch = writeBatch(db);
+      uids.forEach(uid => {
+        batch.delete(doc(db, 'users', uid));
+      });
+      await batch.commit();
+      toast(`Đã xóa ${uids.length} người dùng thành công!`, 'success');
+    } catch (error) {
+      console.error("Lỗi khi xóa hàng loạt người dùng:", error);
+      toast('Lỗi khi xóa hàng loạt người dùng', 'error');
+    }
+  };
+
+  return { users, loading, updateAssignedClasses, updateUserRole, deleteUser, deleteUsersBulk };
 }

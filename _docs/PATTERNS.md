@@ -14,3 +14,5 @@
 ## State Management & Logic
 - Tách biệt logic gọi API / Database ra khỏi UI component bằng cách sử dụng custom hooks (như `useAuth`, `useStudents`, `useMealRecords`).
 - Xử lý lỗi đầy đủ khi gọi API / DB, và hiển thị thông báo lỗi cho người dùng thông qua `ToastProvider`.
+## Modal
+- Mỗi modal/popup/dialog trong dự án PHẢI dùng ReactDOM.createPortal để render ra document.body. KHÔNG dùng conditional rendering để show modal inline.

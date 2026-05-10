@@ -6,6 +6,9 @@ import { Search, Plus, Filter, X, Users } from 'lucide-react';
 import { Student } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { Modal } from '../components/ui/Modal';
+import { ImportStudentsModal } from '../components/admin/ImportStudentsModal';
+import { Upload } from 'lucide-react';
+
 export default function Students() {
   const { appUser } = useAuth();
   const { students, loading, addStudent, updateStudent, deleteStudent } = useStudents();
@@ -14,6 +17,7 @@ export default function Students() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState<Partial<Student>>({
     name: '', className: '', age: 6, gender: 'male', weight: 20, height: 110, activityLevel: 'moderate', allergies: [], healthStatus: 'normal'
@@ -47,11 +51,16 @@ export default function Students() {
         <div className="p-4 border-b border-slate-100 bg-white sticky top-0 z-10 space-y-4">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold text-slate-900">Học sinh</h1>
-            <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => {
-              setEditingStudent(null);
-              setFormData({ name: '', className: availableClasses[0] || '', age: 6, gender: 'male', weight: 20, height: 110, activityLevel: 'moderate', allergies: [], healthStatus: 'normal' });
-              setIsModalOpen(true);
-            }}><Plus className="w-4 h-4"/> <span className="hidden sm:inline">Thêm HS</span></Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="gap-1.5 shadow-sm" onClick={() => setIsImportModalOpen(true)}>
+                <Upload className="w-4 h-4"/> <span className="hidden sm:inline">Nhập Excel</span>
+              </Button>
+              <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => {
+                setEditingStudent(null);
+                setFormData({ name: '', className: availableClasses[0] || '', age: 6, gender: 'male', weight: 20, height: 110, activityLevel: 'moderate', allergies: [], healthStatus: 'normal' });
+                setIsModalOpen(true);
+              }}><Plus className="w-4 h-4"/> <span className="hidden sm:inline">Thêm HS</span></Button>
+            </div>
           </div>
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -214,6 +223,7 @@ export default function Students() {
           </div>
         </form>
       </Modal>
+      <ImportStudentsModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
     </div>
   );
 }
