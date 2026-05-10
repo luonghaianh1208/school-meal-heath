@@ -41,7 +41,7 @@ export default function Reports() {
       if (!filteredStudentIds.has(r.studentId)) return;
       if (!dateGroups[r.date]) dateGroups[r.date] = { total: 0, complete: 0 };
       dateGroups[r.date].total += 1;
-      if (r.eatLevel === 'complete' || r.eatLevel === 'most') {
+      if (r.eatLevel >= 75) {
         dateGroups[r.date].complete += 1;
       }
     });
@@ -73,7 +73,7 @@ export default function Reports() {
     records.forEach(r => {
       if (studentStats[r.studentId]) {
         studentStats[r.studentId].total += 1;
-        if (r.eatLevel === 'complete' || r.eatLevel === 'most') {
+        if (r.eatLevel >= 75) {
           studentStats[r.studentId].complete += 1;
         }
       }

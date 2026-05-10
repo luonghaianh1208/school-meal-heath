@@ -34,11 +34,11 @@ export async function seedDatabase(): Promise<boolean> {
     // Write sample meal records for today
     const today = new Date().toISOString().split('T')[0];
     const mealTypes = ['breakfast', 'lunch'] as const;
-    const eatLevels = ['all', 'most', 'half', 'little', 'none'] as const;
+    const eatLevels = [100, 75, 50, 25, 0] as const;
 
     for (const [name, id] of Object.entries(studentRefs)) {
       for (const mealType of mealTypes) {
-        const eatLevel = eatLevels[Math.floor(Math.random() * 3)]; // mostly all/most/half
+        const eatLevel = eatLevels[Math.floor(Math.random() * 3)]; // mostly 100/75/50
         await addDoc(collection(db, 'mealRecords'), {
           studentId: id,
           date: today,

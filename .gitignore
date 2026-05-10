@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# AI Agent Kit
+.agent/
+.agents/
+GEMINI.md

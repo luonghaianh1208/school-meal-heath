@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### 2026-05-10 — Session 4: Chuyển sang dữ liệu Firebase thật, sửa data mismatch + Cài Agent-Kit
+
+**Cài đặt Agent-Kit:**
+- Clone từ `github.com/luonghaianh1208/Agent-Kit`
+- Copy `.agent/` (20 agents, 40 skills, 11 workflows) + `GEMINI.md` vào root dự án
+- Dọn sạch thư mục temp
+
+**Kiểm tra Firebase DB:**
+- Xác nhận Firestore hoạt động đúng: 3 collections (students, mealRecords, alerts) có dữ liệu thật
+- Firebase Auth có 1 user (luonghaianh1208@gmail.com)
+- Firestore rules đã deployed đúng
+
+**Data Migration (Firestore):**
+- Migrate tất cả 10 meal records: `eatLevel` từ string (`"all"`, `"most"`, `"half"`) → number (`100`, `75`, `50`) để khớp TypeScript type
+
+**Files thay đổi:**
+- `src/pages/Reports.tsx` — Sửa so sánh `eatLevel` từ string (`'complete'`/`'most'`) → number (`>= 75`). Bug M5 fixed
+- `src/pages/MealTracking.tsx` — Thay danh sách lớp hardcoded (`['6A','6B',...]`) bằng dynamic classes từ Firestore students. Thêm auto-select class khi data load. Bug M4 fixed
+- `src/utils/seedData.ts` — Cập nhật seed eatLevel format string → number cho tương lai
+
+**Bugs đã sửa:** M4, M5
+
 ### 2026-05-08 — Session 3: Kết nối Firebase thật + Phân quyền Role
 
 **Files thay đổi:**

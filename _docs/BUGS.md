@@ -13,8 +13,8 @@
 6. **[M1] Title sai** — `index.html:6` — "My Google AI Studio App" thay vì tên app.
 7. **[M2] Thiếu meta SEO** — `index.html` — Không description, favicon, OG tags.
 8. **[M3] Login hiện credential test** — `Login.tsx:56,69` — Hiện email/pass demo trên label.
-9. **[M4] Danh sách lớp hard-code** — `MealTracking.tsx:72` — `['6A', '7B']`.
-10. **[M5] Reports data mock** — `Reports.tsx` — Biểu đồ và danh sách 100% hard-code.
+9. ~~**[M4] Danh sách lớp hard-code**~~ ✅ Đã chuyển sang dynamic từ Firestore.
+10. ~~**[M5] Reports data mock**~~ ✅ Đã sửa eatLevel comparison, dùng data Firestore thật.
 11. **[M6] Mobile nav thiếu "Báo cáo"** — `Layout.tsx:96` — `navItems.slice(0,5)` cắt mất item thứ 6.
 12. **[M7] Nút "Thêm HS" broken** — `Students.tsx:35` — Không có onClick handler.
 13. **[M8] Nút "Xem tất cả" broken** — `Dashboard.tsx:147` — Click không navigate.
@@ -30,4 +30,13 @@
 20. **[L5] Unused React import** — `ProtectedRoute.tsx:1`.
 
 ## ✅ Resolved
-- N/A
+- **[C1]** Sửa deprecated persistence API — Session 3
+- **[C2]** Auth mock → Firebase Auth thật — Session 3
+- **[C3]** Data mock → Firestore thật — Session 3
+- **[C5]** .env.example — Session 3
+- **[M1]** Title sai — Session 3
+- **[M2]** Meta SEO — Session 3
+- **[M3]** Login credential hints — Session 3
+- **[M4]** Danh sách lớp hard-code → dynamic — Session 4
+- **[M5]** Reports data mock → Firestore data thật — Session 4
+- **[M6]** Mobile nav — Session 3

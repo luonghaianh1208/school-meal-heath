@@ -11,11 +11,16 @@ import { useToast } from '../components/ui/Toast';
 
 export default function MealTracking() {
   const { appUser } = useAuth();
+  
+  // Fetch all students once to build the dynamic class list
+  const { students: allStudents } = useStudents();
+  const allClassesFromDB = Array.from(new Set(allStudents.map(s => s.className))).sort();
+  
   const classes = appUser?.role === 'admin' 
-    ? ['6A', '6B', '7A', '7B', '8A', '8B', '9A', '9B'] 
+    ? allClassesFromDB
     : (appUser?.assignedClasses || []);
     
-  const [selectedClass, setSelectedClass] = useState(classes[0] || '6A');
+  const [selectedClass, setSelectedClass] = useState(classes[0] || '');
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const { students } = useStudents(selectedClass);
   const { records, batchUpdateRecords } = useMealRecords(selectedDate);
@@ -24,6 +29,13 @@ export default function MealTracking() {
   // Local state for fast toggling before saving
   const [localRecords, setLocalRecords] = useState<Record<string, number>>({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-select first class when data loads
+  useEffect(() => {
+    if (classes.length > 0 && !selectedClass) {
+      setSelectedClass(classes[0]);
+    }
+  }, [classes, selectedClass]);
 
   // Sync local records with fetched records if any
   useEffect(() => {
