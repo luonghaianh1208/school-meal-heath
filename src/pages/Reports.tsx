@@ -138,9 +138,9 @@ export default function Reports() {
       const opt = {
         margin:       10,
         filename:     `Bao_Cao_Dinh_Duong_${new Date().toISOString().split('T')[0]}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
+        image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF:        { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
       };
       html2pdf.default().set(opt).from(element).save().then(() => {
          toast('Đã tải xuống file PDF!', 'success');
@@ -165,7 +165,7 @@ export default function Reports() {
             className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none bg-white font-medium"
           >
             <option value="all">Tất cả lớp</option>
-            {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
+            {availableClasses.map((c: string) => <option key={c} value={c}>{c}</option>)}
           </select>
           <Button onClick={handlePrint} variant="outline" className="gap-2 h-auto py-2 px-4">
               <Printer className="w-4 h-4" /> <span className="hidden sm:inline">In PDF</span>

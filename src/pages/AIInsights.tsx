@@ -62,7 +62,7 @@ export default function AIInsights() {
     try {
       const avgCal = 650; // Mock avg lunch
       // Gather allergies
-      const allergies = Array.from(new Set(classStudents.flatMap(s => s.allergies || [])));
+      const allergies = Array.from(new Set(classStudents.flatMap(s => s.allergies || []))) as string[];
       const res = await suggestWeeklyMenu(avgCal, allergies);
       setMenuResult(res);
     } catch(e) {
@@ -101,7 +101,7 @@ export default function AIInsights() {
             onChange={e => setSelectedClass(e.target.value)}
             className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none bg-white font-medium"
         >
-            {availableClasses.map(c => <option key={c} value={c}>Lớp {c}</option>)}
+            {availableClasses.map((c: string) => <option key={c} value={c}>Lớp {c}</option>)}
             {availableClasses.length === 0 && <option value="">Không có lớp</option>}
         </select>
       </header>

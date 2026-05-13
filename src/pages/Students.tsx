@@ -79,7 +79,7 @@ export default function Students() {
               className="px-2 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none bg-white font-medium"
             >
               <option value="all">Tất cả</option>
-              {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
+              {availableClasses.map((c: string) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>

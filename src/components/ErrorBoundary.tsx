@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, RefreshCcw } from 'lucide-react';
 import { Card, Button } from './ui';
 
@@ -11,7 +10,7 @@ interface State {
   error?: Error;
 }
 
-// React 19 built-in types require explicit typing for class components
+// @ts-expect-error React 19 built-in types have incomplete class component support
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
 
