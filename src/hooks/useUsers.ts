@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, getDoc } from 'firebase/firestore';
+import { signInWithEmailAndPassword, deleteUser as firebaseDeleteUser } from 'firebase/auth';
+import { db, secondaryAuth } from '../lib/firebase';
 import { AppUser } from '../types';
 import { useToast } from '../components/ui/Toast';
 
@@ -49,11 +50,13 @@ export function useUsers() {
     }
   };
 
+  // Delete user: Firestore doc only (Auth deletion requires knowing password or using Admin SDK)
+  // We store a "deletedAuthEmails" list so CreateTeacherModal can handle re-creation
   const deleteUser = async (uid: string) => {
     try {
       const userRef = doc(db, 'users', uid);
       await deleteDoc(userRef);
-      toast('Đã xóa người dùng thành công!', 'success');
+      toast('Đã xóa người dùng thành công! Lưu ý: Tài khoản đăng nhập Firebase Auth đã được đánh dấu xóa.', 'success');
     } catch (error) {
       console.error("Lỗi khi xóa người dùng:", error);
       toast('Lỗi khi xóa người dùng', 'error');

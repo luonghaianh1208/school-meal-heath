@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Modal, Button } from '../ui';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser as firebaseDeleteAuthUser } from 'firebase/auth';
 import { secondaryAuth, db } from '../../lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useToast } from '../ui/Toast';
 
 interface CreateTeacherModalProps {
@@ -36,20 +36,46 @@ export function CreateTeacherModal({ isOpen, onClose, defaultRole = 'teacher' }:
     setError('');
 
     try {
-      // Validate
       if (password.length < 6) {
         setError('Mật khẩu phải có ít nhất 6 ký tự.');
         setLoading(false);
         return;
       }
 
-      // 1. Create auth user via secondary app (won't logout current admin)
-      const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-      const newUid = userCredential.user.uid;
-
-      // 2. Create Firestore user document
       const assignedClasses = classes.split(',').map(c => c.trim()).filter(c => c.length > 0);
+      let newUid: string;
 
+      try {
+        // Try creating a new auth user via secondary app
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        newUid = userCredential.user.uid;
+      } catch (authError: any) {
+        if (authError.code === 'auth/email-already-in-use') {
+          // Email exists in Firebase Auth — try to sign in and reclaim
+          try {
+            const existingCred = await signInWithEmailAndPassword(secondaryAuth, email, password);
+            newUid = existingCred.user.uid;
+
+            // Check if Firestore doc exists
+            const existingDoc = await getDoc(doc(db, 'users', newUid));
+            if (existingDoc.exists()) {
+              setError('Email này đã có tài khoản hoạt động trên hệ thống. Hãy xóa người dùng cũ trước.');
+              setLoading(false);
+              return;
+            }
+            // Firestore doc doesn't exist — this is a ghost Auth account, reuse it
+          } catch (signInError: any) {
+            // Can't sign in (wrong password) — the Auth account truly exists with different creds
+            setError('Email này đã được đăng ký với mật khẩu khác. Nếu muốn tạo lại, hãy liên hệ quản trị viên Firebase Console để xóa tài khoản Auth cũ.');
+            setLoading(false);
+            return;
+          }
+        } else {
+          throw authError; // Re-throw other auth errors
+        }
+      }
+
+      // Create Firestore user document
       await setDoc(doc(db, 'users', newUid), {
         email,
         displayName: displayName || email.split('@')[0],
@@ -58,7 +84,7 @@ export function CreateTeacherModal({ isOpen, onClose, defaultRole = 'teacher' }:
         createdAt: new Date()
       });
 
-      // 3. Sign out secondary auth (cleanup)
+      // Sign out secondary auth (cleanup)
       await secondaryAuth.signOut();
 
       toast(`Đã tạo tài khoản ${role === 'admin' ? 'Ban Giám Hiệu' : 'Giáo viên'} thành công!`, 'success');
@@ -67,9 +93,7 @@ export function CreateTeacherModal({ isOpen, onClose, defaultRole = 'teacher' }:
     } catch (err: any) {
       console.error('Error creating user:', err);
 
-      // Map Firebase error codes to Vietnamese
       const errorMessages: Record<string, string> = {
-        'auth/email-already-in-use': 'Email này đã được sử dụng.',
         'auth/invalid-email': 'Email không hợp lệ.',
         'auth/weak-password': 'Mật khẩu quá yếu (tối thiểu 6 ký tự).',
         'auth/operation-not-allowed': 'Đăng ký bằng email/mật khẩu chưa được bật trong Firebase.',
@@ -147,7 +171,7 @@ export function CreateTeacherModal({ isOpen, onClose, defaultRole = 'teacher' }:
               onClick={() => setRole('admin')}
               className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${
                 role === 'admin'
-                  ? 'bg-purple-50 text-purple-700 border-purple-200 ring-1 ring-purple-500 shadow-sm'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-amber-500 shadow-sm'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >

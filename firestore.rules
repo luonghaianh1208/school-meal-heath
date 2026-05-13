@@ -18,10 +18,10 @@ service cloud.firestore {
 
     // Users collection — role-based access
     match /users/{userId} {
-      // Any authenticated user can read their own profile
+      // Admin can read all, user can read own profile
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      // User can create their own profile on first login
-      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // User can create their own profile on first login, OR admin can create for others
+      allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
       // Only admin can update user profiles (e.g. change roles, assign classes)
       allow update: if isAdmin();
       allow delete: if isAdmin();
