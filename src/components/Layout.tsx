@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, ClipboardList, Sparkles, LogOut, Calculator, PieChart, Settings, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, Sparkles, LogOut, Calculator, PieChart, Settings, UserCircle, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -14,6 +14,7 @@ export default function Layout() {
     { to: '/nutrition', icon: Calculator, label: 'Dinh dưỡng' },
     { to: '/ai-insights', icon: Sparkles, label: 'AI Phân tích' },
     { to: '/reports', icon: PieChart, label: 'Báo cáo' },
+    { to: '/food-preparation', icon: ShoppingCart, label: 'Chuẩn bị TP' },
     { to: '/profile', icon: UserCircle, label: 'Hồ sơ' },
   ];
 

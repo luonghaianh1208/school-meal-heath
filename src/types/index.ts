@@ -24,6 +24,7 @@ export interface Student {
   weight: number           // kg
   height: number           // cm
   activityLevel: 'low' | 'medium' | 'high'
+  boardingType: 'day' | 'boarding'  // bán trú | nội trú
   allergies: string[]      // ["đậu phộng", "hải sản"]
   healthStatus: 'normal' | 'underweight' | 'overweight' | 'monitored'
   createdAt: Timestamp | Date
@@ -108,4 +109,44 @@ export interface DailyIntakeSummary {
   percentAchieved: number
   meals: MealIntakeEval[]
   recommendation: string        // gợi ý bữa tiếp theo nếu thiếu calo
+}
+
+// Chia TDEE theo từng bữa
+export interface MealBreakdown {
+  mealType: 'breakfast' | 'lunch' | 'dinner'
+  label: string                 // "Bữa sáng", "Bữa trưa", "Bữa tối"
+  percentOfDaily: number        // 30, 40, 30
+  calories: number              // kcal
+  protein: number               // g
+  carbs: number                 // g
+  fat: number                   // g
+}
+
+// Quy đổi macro → thực phẩm cụ thể
+export interface FoodItem {
+  name: string                  // "Cơm (gạo tẻ)", "Thịt bò nạc"
+  category: 'carbs' | 'protein' | 'fat' | 'vegetable' | 'dairy' | 'fruit'
+  amount: number                // gram
+  unit: string                  // "g", "ml"
+}
+
+export interface FoodConversion {
+  mealType: 'breakfast' | 'lunch' | 'dinner'
+  label: string
+  calories: number
+  foods: FoodItem[]
+}
+
+// Tổng hợp thực phẩm cho toàn trường / lớp
+export interface SchoolFoodSummary {
+  mealType: 'breakfast' | 'lunch' | 'dinner'
+  label: string
+  totalStudents: number
+  dayStudents: number           // bán trú
+  boardingStudents: number      // nội trú
+  foods: {
+    name: string
+    totalAmountKg: number       // kg
+    unit: string
+  }[]
 }

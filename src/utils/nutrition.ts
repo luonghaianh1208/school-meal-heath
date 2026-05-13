@@ -1,4 +1,4 @@
-import { Student, NutritionPlan, MealPortion, MealIntakeEval, DailyIntakeSummary, MealRecord, Alert } from '../types';
+import { Student, NutritionPlan, MealPortion, MealIntakeEval, DailyIntakeSummary, MealRecord, Alert, MealBreakdown, FoodConversion, FoodItem, SchoolFoodSummary } from '../types';
 
 // Tính BMI
 export function calculateBMI(weight: number, height: number): number {
@@ -177,4 +177,144 @@ export function checkHealthAlerts(studentId: string, records: MealRecord[]): Ale
   }
 
   return alerts;
+}
+
+// ==========================================
+// PHASE 2: Chia bữa + Quy đổi thực phẩm
+// ==========================================
+
+import { MEAL_RATIOS, FOOD_DATABASE, VEGETABLE_PER_MEAL, FRUIT_PER_MEAL, MILK_PER_MEAL } from './foodDatabase';
+
+/**
+ * Chia TDEE theo từng bữa, phụ thuộc boardingType:
+ * - Nội trú (boarding): Sáng 30%, Trưa 40%, Tối 30%
+ * - Bán trú (day): Chỉ bữa trưa = 40% TDEE
+ */
+export function splitDailyCaloriesByMeal(
+  plan: NutritionPlan,
+  boardingType: 'day' | 'boarding' = 'day'
+): MealBreakdown[] {
+  const ratios = MEAL_RATIOS[boardingType];
+
+  return ratios.map(r => {
+    const calories = Math.round(plan.dailyCalories * r.percent / 100);
+    const macros = calculateMacros(calories);
+    return {
+      mealType: r.mealType,
+      label: r.label,
+      percentOfDaily: r.percent,
+      calories,
+      protein: macros.protein,
+      carbs: macros.carbs,
+      fat: macros.fat,
+    };
+  });
+}
+
+/**
+ * Quy đổi macro (g protein, g carbs, g fat) → gram thực phẩm cụ thể
+ * Dựa trên bảng dinh dưỡng Viện Dinh dưỡng VN
+ */
+export function convertMacrosToFood(meal: MealBreakdown): FoodConversion {
+  const foods: FoodItem[] = [];
+
+  // === CƠM / TINH BỘT ===
+  // 100g cơm chứa 28.7g carbs → cần (carbs / 28.7 * 100)g cơm
+  const riceInfo = FOOD_DATABASE.find(f => f.name === 'Cơm (gạo tẻ)')!;
+  const riceGrams = Math.round(meal.carbs * 0.75 / riceInfo.carbsPer100g * 100);
+  foods.push({ name: '🍚 Cơm (gạo tẻ)', category: 'carbs', amount: riceGrams, unit: 'g' });
+
+  // === THỊT / CÁ (PROTEIN CHÍNH) ===
+  // Chia protein: 50% thịt/cá, 20% trứng, 30% từ nguồn khác
+  const meatProtein = meal.protein * 0.5;
+  const meatInfo = FOOD_DATABASE.find(f => f.name === 'Thịt heo nạc')!;
+  const meatGrams = Math.round(meatProtein / meatInfo.proteinPer100g * 100);
+  foods.push({ name: '🥩 Thịt/Cá', category: 'protein', amount: meatGrams, unit: 'g' });
+
+  // === TRỨNG ===
+  const eggProtein = meal.protein * 0.2;
+  const eggInfo = FOOD_DATABASE.find(f => f.name === 'Trứng gà')!;
+  const eggGrams = Math.round(eggProtein / eggInfo.proteinPer100g * 100);
+  foods.push({ name: '🥚 Trứng gà', category: 'protein', amount: eggGrams, unit: 'g' });
+
+  // === ĐẬU PHỤ (protein phụ) ===
+  const tofuProtein = meal.protein * 0.15;
+  const tofuInfo = FOOD_DATABASE.find(f => f.name === 'Đậu phụ')!;
+  const tofuGrams = Math.round(tofuProtein / tofuInfo.proteinPer100g * 100);
+  foods.push({ name: '🫘 Đậu phụ', category: 'protein', amount: tofuGrams, unit: 'g' });
+
+  // === RAU XANH (cố định theo khuyến nghị) ===
+  foods.push({ name: '🥬 Rau xanh', category: 'vegetable', amount: VEGETABLE_PER_MEAL, unit: 'g' });
+
+  // === DẦU ĂN ===
+  const oilInfo = FOOD_DATABASE.find(f => f.name === 'Dầu ăn (thực vật)')!;
+  const oilGrams = Math.round(meal.fat * 0.3 / oilInfo.fatPer100g * 100);
+  foods.push({ name: '🫒 Dầu ăn', category: 'fat', amount: oilGrams, unit: 'g' });
+
+  // === SỮA ===
+  foods.push({ name: '🥛 Sữa tươi', category: 'dairy', amount: MILK_PER_MEAL, unit: 'ml' });
+
+  // === TRÁI CÂY ===
+  foods.push({ name: '🍎 Trái cây', category: 'fruit', amount: FRUIT_PER_MEAL, unit: 'g' });
+
+  return {
+    mealType: meal.mealType,
+    label: meal.label,
+    calories: meal.calories,
+    foods,
+  };
+}
+
+/**
+ * Tính tổng lượng thực phẩm cần chuẩn bị cho toàn trường (hoặc theo lớp)
+ * Trả về kết quả theo kg
+ */
+export function calculateSchoolFoodTotal(
+  students: Student[],
+  mealType: 'breakfast' | 'lunch' | 'dinner' = 'lunch'
+): SchoolFoodSummary {
+  const label = mealType === 'breakfast' ? 'Bữa sáng' : mealType === 'lunch' ? 'Bữa trưa' : 'Bữa tối';
+
+  // Lọc HS theo loại hình phù hợp với bữa
+  const eligibleStudents = students.filter(s => {
+    const bt = s.boardingType || 'day';
+    if (bt === 'boarding') return true; // nội trú ăn cả 3 bữa
+    return mealType === 'lunch'; // bán trú chỉ ăn trưa
+  });
+
+  const dayStudents = eligibleStudents.filter(s => (s.boardingType || 'day') === 'day');
+  const boardingStudents = eligibleStudents.filter(s => (s.boardingType || 'day') === 'boarding');
+
+  // Aggregate food totals
+  const foodTotals: Record<string, { totalGrams: number; unit: string }> = {};
+
+  eligibleStudents.forEach(student => {
+    const plan = calculateDailyCalories(student);
+    const meals = splitDailyCaloriesByMeal(plan, student.boardingType || 'day');
+    const targetMeal = meals.find(m => m.mealType === mealType);
+    if (!targetMeal) return;
+
+    const foodConversion = convertMacrosToFood(targetMeal);
+    foodConversion.foods.forEach(food => {
+      if (!foodTotals[food.name]) {
+        foodTotals[food.name] = { totalGrams: 0, unit: food.unit };
+      }
+      foodTotals[food.name].totalGrams += food.amount;
+    });
+  });
+
+  const foods = Object.entries(foodTotals).map(([name, data]) => ({
+    name,
+    totalAmountKg: Math.round(data.totalGrams / 100) / 10, // round to 0.1 kg
+    unit: data.unit === 'ml' ? 'lít' : 'kg',
+  }));
+
+  return {
+    mealType,
+    label,
+    totalStudents: eligibleStudents.length,
+    dayStudents: dayStudents.length,
+    boardingStudents: boardingStudents.length,
+    foods,
+  };
 }

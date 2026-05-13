@@ -71,7 +71,7 @@ export default function Admin() {
             <Upload className="w-4 h-4" /> Nhập Excel
           </Button>
           <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Thêm Giáo viên
+            <Plus className="w-4 h-4" /> Thêm người dùng
           </Button>
         </div>
       </header>
@@ -122,7 +122,7 @@ export default function Admin() {
                       <div className="flex flex-wrap gap-1">
                         {user.assignedClasses && user.assignedClasses.length > 0 ? (
                           user.assignedClasses.map(c => (
-                            <span key={c} className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium border border-slate-200">
+                            <span key={c} className="px-2.5 py-1 bg-green-50 text-green-700 rounded-md text-xs font-semibold border border-green-200">
                               Lớp {c}
                             </span>
                           ))

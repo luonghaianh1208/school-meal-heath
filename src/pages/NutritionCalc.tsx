@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Card, Badge, Button, ProgressBar } from '../components/ui';
-import { calculateBMI, getBMIStatus, calculateDailyCalories, calculateMealPortion } from '../utils/nutrition';
-import { Activity, Scale, Ruler, CheckCircle2 } from 'lucide-react';
-import { Student } from '../types';
+import { calculateBMI, getBMIStatus, calculateDailyCalories, splitDailyCaloriesByMeal, convertMacrosToFood } from '../utils/nutrition';
+import { Activity, Scale, Ruler, CheckCircle2, Utensils, ChefHat } from 'lucide-react';
+import { Student, MealBreakdown } from '../types';
 
 export default function NutritionCalc() {
   const [age, setAge] = useState(11);
@@ -10,36 +10,39 @@ export default function NutritionCalc() {
   const [weight, setWeight] = useState(40);
   const [height, setHeight] = useState(145);
   const [activity, setActivity] = useState<'low' | 'medium' | 'high'>('medium');
+  const [boardingType, setBoardingType] = useState<'day' | 'boarding'>('day');
 
-  // Create a dummy student to use existing logic
   const dummyStudent: Student = {
-    id: 'temp', name: 'Demo', className: 'N/A', age, gender, weight, height, activityLevel: activity,
-    allergies: [], healthStatus: 'normal', createdAt: new Date(), updatedAt: new Date()
+    id: 'temp', name: 'Demo', className: 'N/A', age, gender, weight, height,
+    activityLevel: activity, boardingType, allergies: [], healthStatus: 'normal',
+    createdAt: new Date(), updatedAt: new Date()
   };
 
   const plan = calculateDailyCalories(dummyStudent);
-  const lunchPortion = calculateMealPortion(plan, 'lunch');
+  const mealBreakdowns = splitDailyCaloriesByMeal(plan, boardingType);
 
   return (
-    <div className="flex flex-col h-full space-y-6 max-w-5xl">
+    <div className="flex flex-col h-full space-y-6 max-w-6xl">
       <header className="shrink-0 mb-2 border-b border-slate-100 pb-4">
         <h2 className="text-2xl font-bold tracking-tight text-slate-900">Máy tính Dinh dưỡng</h2>
-        <p className="text-slate-500 mt-1">Tính toán nhu cầu calo & khẩu phần chi tiết (Chuẩn Viện Dinh Dưỡng VN)</p>
+        <p className="text-slate-500 mt-1">Tính toán nhu cầu calo, chia bữa & quy đổi thực phẩm (Chuẩn Viện Dinh Dưỡng VN)</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Input Form */}
-        <Card className="space-y-6 h-fit bg-slate-50/50">
-          <h3 className="font-semibold text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-3">Phân tích học sinh</h3>
-          
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Input Form — 2 cols */}
+        <Card className="lg:col-span-2 space-y-5 h-fit bg-slate-50/50">
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-3">
+            <Scale className="w-4 h-4 text-green-600" /> Thông tin học sinh
+          </h3>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Tuổi</label>
-              <input type="number" min="6" max="18" value={age} onChange={(e) => setAge(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500" />
+              <input type="number" min="6" max="18" value={age} onChange={(e) => setAge(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Giới tính</label>
-              <select value={gender} onChange={(e) => setGender(e.target.value as any)} className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500">
+              <select value={gender} onChange={(e) => setGender(e.target.value as any)} className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:outline-none">
                 <option value="male">Nam</option>
                 <option value="female">Nữ</option>
               </select>
@@ -77,12 +80,37 @@ export default function NutritionCalc() {
                 ))}
              </div>
           </div>
+
+          {/* Boarding Type Toggle */}
+          <div>
+             <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+               <Utensils className="w-4 h-4 text-slate-400"/> Loại hình
+             </label>
+             <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => setBoardingType('day')}
+                  className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${boardingType === 'day' ? 'bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-amber-500 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                >
+                  🏫 Bán trú
+                </button>
+                <button 
+                  onClick={() => setBoardingType('boarding')}
+                  className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${boardingType === 'boarding' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-emerald-500 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                >
+                  🏠 Nội trú
+                </button>
+             </div>
+             <p className="text-xs text-slate-400 mt-1.5">
+               {boardingType === 'day' ? 'Ăn 1 bữa trưa tại trường' : 'Ăn 3 bữa (sáng, trưa, tối) tại trường'}
+             </p>
+          </div>
         </Card>
 
-        {/* Results */}
-        <div className="space-y-6">
+        {/* Results — 3 cols */}
+        <div className="lg:col-span-3 space-y-6">
+            {/* TDEE Summary */}
             <Card className="border-t-4 border-t-green-500 shadow-md">
-                <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-4">
+                <div className="flex justify-between items-start mb-5 border-b border-slate-100 pb-4">
                     <div>
                         <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Tổng năng lượng (TDEE)</p>
                         <p className="text-4xl font-bold text-slate-900 mt-1">{plan.dailyCalories} <span className="text-xl text-slate-500 font-normal">kcal/ngày</span></p>
@@ -95,7 +123,7 @@ export default function NutritionCalc() {
                     </div>
                 </div>
 
-                <div className="space-y-4 mb-6">
+                <div className="space-y-3 mb-4">
                     <div>
                         <div className="flex justify-between text-sm mb-1.5 font-medium">
                             <span className="text-slate-700">Protein (15%)</span>
@@ -120,38 +148,69 @@ export default function NutritionCalc() {
                 </div>
             </Card>
 
-            <Card className="bg-green-50/50 border border-green-100">
-               <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-green-900">Khẩu phần bữa trưa (35%)</h3>
-                  <span className="text-lg font-bold text-green-700">{lunchPortion.targetCalories} kcal</span>
-               </div>
-               
-               <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-sm text-slate-700 mb-4">
-                  <div className="flex justify-between border-b border-green-200/50 pb-1">
-                      <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Cơm (Tinh bột)</span>
-                      <span className="font-medium text-slate-900">{lunchPortion.rice}g</span>
-                  </div>
-                  <div className="flex justify-between border-b border-green-200/50 pb-1">
-                      <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Thịt/Cá (Đạm)</span>
-                      <span className="font-medium text-slate-900">{lunchPortion.protein}g</span>
-                  </div>
-                  <div className="flex justify-between border-b border-green-200/50 pb-1">
-                      <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Rau củ</span>
-                      <span className="font-medium text-slate-900">{lunchPortion.vegetable}g</span>
-                  </div>
-                  <div className="flex justify-between border-b border-green-200/50 pb-1">
-                      <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Canh</span>
-                      <span className="font-medium text-slate-900">{lunchPortion.soup}ml</span>
-                  </div>
-               </div>
-
-               <div className="bg-white p-3 rounded-lg border border-green-100/50 text-sm flex gap-2">
-                  <span className="font-semibold text-amber-600">Đề xuất:</span>
-                  <span className="text-slate-600">{lunchPortion.note}</span>
-               </div>
-            </Card>
+            {/* Chia bữa Cards */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <ChefHat className="w-4 h-4 text-green-600" />
+                Phân chia theo bữa ({boardingType === 'day' ? 'Bán trú — 1 bữa' : 'Nội trú — 3 bữa'})
+              </h3>
+              <div className={`grid gap-4 ${mealBreakdowns.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
+                {mealBreakdowns.map((meal) => (
+                  <MealCard key={meal.mealType} meal={meal} />
+                ))}
+              </div>
+            </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function MealCard({ meal }: { meal: MealBreakdown }) {
+  const foodConversion = convertMacrosToFood(meal);
+  const mealColors = {
+    breakfast: { bg: 'bg-orange-50/60', border: 'border-orange-100', accent: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
+    lunch: { bg: 'bg-green-50/60', border: 'border-green-100', accent: 'text-green-700', badge: 'bg-green-100 text-green-700' },
+    dinner: { bg: 'bg-blue-50/60', border: 'border-blue-100', accent: 'text-blue-700', badge: 'bg-blue-100 text-blue-700' },
+  };
+  const colors = mealColors[meal.mealType];
+
+  return (
+    <Card className={`${colors.bg} border ${colors.border} space-y-3`}>
+      <div className="flex justify-between items-center pb-2 border-b border-slate-200/50">
+        <div>
+          <h4 className={`font-bold ${colors.accent}`}>{meal.label}</h4>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colors.badge}`}>{meal.percentOfDaily}% TDEE</span>
+        </div>
+        <span className={`text-xl font-black ${colors.accent}`}>{meal.calories} <span className="text-xs font-medium">kcal</span></span>
+      </div>
+
+      {/* Macro breakdown */}
+      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+        <div className="bg-white/70 rounded-lg p-2">
+          <p className="font-bold text-red-600">{meal.protein}g</p>
+          <p className="text-slate-500">Protein</p>
+        </div>
+        <div className="bg-white/70 rounded-lg p-2">
+          <p className="font-bold text-amber-600">{meal.carbs}g</p>
+          <p className="text-slate-500">Carbs</p>
+        </div>
+        <div className="bg-white/70 rounded-lg p-2">
+          <p className="font-bold text-yellow-600">{meal.fat}g</p>
+          <p className="text-slate-500">Fat</p>
+        </div>
+      </div>
+
+      {/* Food conversion table */}
+      <div className="space-y-1.5">
+        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Quy đổi thực phẩm</p>
+        {foodConversion.foods.map((food) => (
+          <div key={food.name} className="flex justify-between items-center text-sm bg-white/60 px-2.5 py-1.5 rounded-lg">
+            <span className="text-slate-700">{food.name}</span>
+            <span className="font-bold text-slate-900">{food.amount}{food.unit}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }

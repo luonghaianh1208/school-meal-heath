@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, Badge, Button, ProgressBar } from '../components/ui';
 import { useStudents } from '../hooks/useStudents';
-import { calculateDailyCalories } from '../utils/nutrition';
+import { calculateDailyCalories, splitDailyCaloriesByMeal, convertMacrosToFood } from '../utils/nutrition';
 import { Search, Plus, Filter, X, Users } from 'lucide-react';
 import { Student } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -20,7 +20,7 @@ export default function Students() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState<Partial<Student>>({
-    name: '', className: '', age: 6, gender: 'male', weight: 20, height: 110, activityLevel: 'moderate', allergies: [], healthStatus: 'normal'
+    name: '', className: '', age: 6, gender: 'male', weight: 20, height: 110, activityLevel: 'medium', boardingType: 'day', allergies: [], healthStatus: 'normal'
   });
   
   // Available classes based on role
@@ -57,7 +57,7 @@ export default function Students() {
               </Button>
               <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => {
                 setEditingStudent(null);
-                setFormData({ name: '', className: availableClasses[0] || '', age: 6, gender: 'male', weight: 20, height: 110, activityLevel: 'moderate', allergies: [], healthStatus: 'normal' });
+                setFormData({ name: '', className: availableClasses[0] || '', age: 6, gender: 'male', weight: 20, height: 110, activityLevel: 'medium', boardingType: 'day', allergies: [], healthStatus: 'normal' });
                 setIsModalOpen(true);
               }}><Plus className="w-4 h-4"/> <span className="hidden sm:inline">Thêm HS</span></Button>
             </div>
@@ -184,10 +184,10 @@ export default function Students() {
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-700">Mức độ HĐ</label>
-              <select value={formData.activityLevel} onChange={e => setFormData({...formData, activityLevel: e.target.value as 'sedentary'|'moderate'|'active'})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
-                <option value="sedentary">Ít vận động</option>
-                <option value="moderate">Vừa phải</option>
-                <option value="active">Năng động</option>
+              <select value={formData.activityLevel} onChange={e => setFormData({...formData, activityLevel: e.target.value as 'low'|'medium'|'high'})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                <option value="low">Ít vận động</option>
+                <option value="medium">Vừa phải</option>
+                <option value="high">Năng động</option>
               </select>
             </div>
 
@@ -201,7 +201,15 @@ export default function Students() {
               <input required type="number" step="0.1" value={formData.height} onChange={e => setFormData({...formData, height: Number(e.target.value)})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none" />
             </div>
 
-            <div className="space-y-1 col-span-2">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-700">Loại hình</label>
+              <select value={formData.boardingType || 'day'} onChange={e => setFormData({...formData, boardingType: e.target.value as 'day'|'boarding'})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                <option value="day">🏫 Bán trú</option>
+                <option value="boarding">🏠 Nội trú</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
               <label className="text-sm font-medium text-slate-700">Trạng thái sức khỏe</label>
               <select value={formData.healthStatus} onChange={e => setFormData({...formData, healthStatus: e.target.value as any})} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
                 <option value="normal">Bình thường</option>
@@ -249,7 +257,7 @@ function StudentDetail({ student, onEdit, onDelete }: { student: Student, onEdit
               }}>Xóa</Button>
             </div>
           </div>
-          <p className="text-slate-500">Lớp {student.className} • Giới tính: {student.gender === 'male' ? 'Nam' : 'Nữ'} • {student.age} tuổi</p>
+          <p className="text-slate-500">Lớp {student.className} • {student.gender === 'male' ? 'Nam' : 'Nữ'} • {student.age} tuổi • {(student.boardingType || 'day') === 'boarding' ? '🏠 Nội trú' : '🏫 Bán trú'}</p>
           <div className="mt-3 flex gap-2">
             <Badge severity={student.healthStatus === 'underweight' ? 'medium' : student.healthStatus === 'overweight' ? 'high' : 'success'}>
                 {student.healthStatus === 'underweight' ? 'Nhẹ cân' : student.healthStatus === 'overweight' ? 'Thừa cân' : 'Bình thường'}
@@ -312,10 +320,30 @@ function StudentDetail({ student, onEdit, onDelete }: { student: Student, onEdit
       
       <Card>
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
-            <h3 className="font-semibold text-slate-900">Bữa ăn tại trường (Trưa)</h3>
-            <span className="text-sm font-semibold text-green-600">{Math.round(nutritionPlan.dailyCalories * 0.35)} kcal</span>
+            <h3 className="font-semibold text-slate-900">Bữa ăn tại trường ({(student.boardingType || 'day') === 'boarding' ? 'Nội trú — 3 bữa' : 'Bán trú — bữa trưa'})</h3>
           </div>
-          <p className="text-sm text-slate-600 italic">Khuyến nghị: {(student.healthStatus === 'underweight') ? 'Nên dùng thêm các món phụ giàu dinh dưỡng.' : (student.healthStatus === 'overweight') ? 'Khuyến khích ăn nhiều rau, giảm tinh bột.' : 'Nên ăn hết phần để đảm bảo phát triển tốt.'}</p>
+          <div className="space-y-3">
+            {splitDailyCaloriesByMeal(nutritionPlan, student.boardingType || 'day').map(meal => {
+              const foods = convertMacrosToFood(meal);
+              return (
+                <div key={meal.mealType} className="bg-slate-50 rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-semibold text-slate-800">{meal.label}</span>
+                    <span className="text-sm font-bold text-green-600">{meal.calories} kcal ({meal.percentOfDaily}%)</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    {foods.foods.map(f => (
+                      <div key={f.name} className="flex justify-between bg-white px-2 py-1 rounded">
+                        <span className="text-slate-600">{f.name}</span>
+                        <span className="font-bold text-slate-900">{f.amount}{f.unit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-sm text-slate-600 italic mt-3">Khuyến nghị: {(student.healthStatus === 'underweight') ? 'Nên dùng thêm các món phụ giàu dinh dưỡng.' : (student.healthStatus === 'overweight') ? 'Khuyến khích ăn nhiều rau, giảm tinh bột.' : 'Nên ăn hết phần để đảm bảo phát triển tốt.'}</p>
       </Card>
     </div>
   )
