@@ -1,3 +1,4 @@
+import React from 'react';
 import { AlertTriangle, RefreshCcw } from 'lucide-react';
 import { Card, Button } from './ui';
 
